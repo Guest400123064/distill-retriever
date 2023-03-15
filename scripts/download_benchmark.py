@@ -23,13 +23,15 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
                     handlers=[LoggingHandler()])
 
 
-DATASET_NAMES = [# "msmarco",
-                #  "trec-covid",
-                #  "nfcorpus",
-                #  "nq",
+DATASET_NAMES = ["trec-covid",
+                 "nfcorpus",
+                 "nq",
                  "hotpotqa",
                  "fiqa",
-                 "scifact",]
+                 "scidocs",
+                 "arguana",
+                 "quora",
+                 "scifact"]
 
 
 if __name__ == "__main__":
