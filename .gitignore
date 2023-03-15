@@ -132,5 +132,4 @@ dmypy.json
 .vscode/
 
 # Large datasets
-data/datasets/*.zip
-data/datasets/hotpotqa
+data/datasets/*
