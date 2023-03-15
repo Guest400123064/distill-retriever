@@ -37,8 +37,8 @@ DIR_EVAL = DIR_HOME / "data" / "evaluations"
 DIR_DATA = DIR_HOME / "data" / "datasets"
 DATASETS = {"trec-covid",
             "nfcorpus",
-            "nq",
-            "hotpotqa",
+            # "nq",
+            # "hotpotqa",
             "fiqa",
             "scidocs",
             "arguana",
@@ -151,21 +151,8 @@ def evaluate_on_dataset(dataset_name: str,
 if __name__ == "__main__":
     
     opt = parse_arguments()
-    if opt.dataset is None:
-        datasets = DATASETS
-    else:
-        datasets = [opt.dataset]
-    
-    # Evaluate on all datasets
-    eval_results = []
-    for dataset in datasets:
-        result = evaluate_on_dataset(dataset,
-                                     opt.document_encoder,
-                                     opt.query_encoder,
-                                     opt.batch_size)
-        eval_results.append(result)
+    datasets = opt.dataset or DATASETS
 
-    # Save results
     target_path = os.path.join(DIR_EVAL, opt.output)
     if opt.append and os.path.exists(target_path):
         logging.info(f"Appending results to {target_path}.")
@@ -174,11 +161,15 @@ if __name__ == "__main__":
         logging.info(f"Saving (overwrite) results to {opt.output}.")
         f = open(target_path, "w")
     
-    writer = csv.DictWriter(f, fieldnames=eval_results[0].keys())
-    
-    # Write header if file is empty
-    if os.stat(target_path).st_size == 0:
-        writer.writeheader()
-    writer.writerows(eval_results)
-
+    # Evaluate and save
+    for i, dataset in enumerate(datasets):
+        result = evaluate_on_dataset(dataset,
+                                     opt.document_encoder,
+                                     opt.query_encoder,
+                                     opt.batch_size)
+        if i == 0:
+            writer = csv.DictWriter(f, fieldnames=result.keys())
+            if os.stat(target_path).st_size == 0:
+                writer.writeheader()
+        writer.writerow(result)
     f.close()
