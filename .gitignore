@@ -133,3 +133,6 @@ dmypy.json
 
 # Large datasets
 data/datasets/*
+
+# Large models
+models/*
