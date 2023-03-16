@@ -35,7 +35,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 DIR_HOME = pathlib.Path(__file__).parent.parent.absolute()
 DIR_EVAL = DIR_HOME / "data" / "evaluations"
 DIR_DATA = DIR_HOME / "data" / "datasets"
-DATASETS = {"trec-covid",
+DATASETS = ["trec-covid",
             "nfcorpus",
             # "nq",
             # "hotpotqa",
@@ -43,7 +43,7 @@ DATASETS = {"trec-covid",
             "scidocs",
             "arguana",
             "quora",
-            "scifact"}
+            "scifact"]
 
 
 def parse_arguments():
@@ -74,6 +74,14 @@ def parse_arguments():
         type=str,
         default=None,
         help="Name of the pre-trained model to use for query encoding (default: None).",
+    )
+
+    parser.add_argument(
+        "--score-function",
+        type=str,
+        default="cos_sim",
+        choices=["cos_sim", "dot"],
+        help="Score function to use for ranking (default: cos_sim).",
     )
 
     parser.add_argument(
@@ -117,6 +125,7 @@ def create_meta_data(document_encoder: str,
 def evaluate_on_dataset(dataset_name: str, 
                         document_encoder: str, 
                         query_encoder: str, 
+                        score_function: str,
                         batch_size: int) -> Dict[str, Union[str, float]]:
     """Evaluate the specified model on the specified dataset."""
 
@@ -134,13 +143,14 @@ def evaluate_on_dataset(dataset_name: str,
 
     # Retrieve
     retriever = EvaluateRetrieval(model, 
-                                  score_function="cos_sim", 
+                                  score_function=score_function, 
                                   k_values=[10, 100])
     results   = retriever.retrieve(corpus, queries)
 
     # Combine to a single dictionary
     eval_results = create_meta_data(document_encoder, query_encoder, 
-                                    dataset_name=dataset_name, 
+                                    dataset_name=dataset_name,
+                                    score_function=score_function, 
                                     batch_size=batch_size)
     for metric in retriever.evaluate(qrels, results, 
                                      k_values=retriever.k_values):
@@ -152,6 +162,8 @@ if __name__ == "__main__":
     
     opt = parse_arguments()
     datasets = opt.dataset or DATASETS
+    if isinstance(datasets, str):
+        datasets = [datasets]
 
     target_path = os.path.join(DIR_EVAL, opt.output)
     if opt.append and os.path.exists(target_path):
@@ -166,10 +178,12 @@ if __name__ == "__main__":
         result = evaluate_on_dataset(dataset,
                                      opt.document_encoder,
                                      opt.query_encoder,
+                                     opt.score_function,
                                      opt.batch_size)
         if i == 0:
             writer = csv.DictWriter(f, fieldnames=result.keys())
             if os.stat(target_path).st_size == 0:
                 writer.writeheader()
         writer.writerow(result)
+        f.flush()
     f.close()
