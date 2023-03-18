@@ -41,3 +41,4 @@ if __name__ == "__main__":
     for name in tqdm.tqdm(DATASET_NAMES):
         url = url_fmt.format(name=name)
         util.download(url, out_dir / "zip")
+        util.unzip(out_dir / "zip" / f"{name}.zip", out_dir / "raw")
