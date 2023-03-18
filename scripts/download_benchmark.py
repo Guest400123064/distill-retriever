@@ -40,4 +40,4 @@ if __name__ == "__main__":
     url_fmt = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{name}.zip"
     for name in tqdm.tqdm(DATASET_NAMES):
         url = url_fmt.format(name=name)
-        util.download_and_unzip(url, out_dir)
+        util.download(url, out_dir / "zip")
