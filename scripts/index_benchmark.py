@@ -4,7 +4,7 @@
 # Date: 03-18-2023
 # =============================================================================
 """
-This script create FAISS indices datasets with a specified model. It helps 
+This script create Faiss indices datasets with a specified model. It helps 
     to reduce the overhead of re-creating document embeddings every time 
     when evaluating different query encoders.
 """
@@ -20,8 +20,7 @@ import logging
 from beir import util, LoggingHandler
 from beir.retrieval import models
 from beir.datasets.data_loader import GenericDataLoader
-from beir.retrieval.evaluation import EvaluateRetrieval
-from beir.retrieval.search.dense import DenseRetrievalFaissSearch
+from beir.retrieval.search.dense import FlatIPFaissSearch
 
 logging.basicConfig(format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -30,6 +29,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 
 DIR_HOME = pathlib.Path(__file__).parent.parent.absolute()
 DIR_DATA = DIR_HOME / "data" / "datasets"
+URL_DATA = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{name}.zip"
 DATASETS = ["trec-covid",
             "nfcorpus",
             # "nq",
@@ -46,7 +46,7 @@ def parse_arguments():
         dataset name and the model name to create indices with."""
 
     parser = argparse.ArgumentParser(
-        description="Create FAISS indices for a dense retrieval system using the BEIR package."
+        description="Create Faiss indices for a dense retrieval system using the BEIR package."
     )
 
     parser.add_argument(
@@ -64,21 +64,70 @@ def parse_arguments():
         help="Name of the pre-trained model to use for dense retrieval (default: all-MiniLM-L6-v2).",
     )
 
-    args = parser.parse_args()
-    return args
+    parser.add_argument(
+        "--score-function", "-s",
+        type=str,
+        default="dot",
+        choices=["cos_sim", "dot"],
+        help="Score function to use for ranking (default: cos_sim).",
+    )
+
+    parser.add_argument(
+        "--batch-size", "-b",
+        type=int,
+        default=16,
+        help="Batch size for dense retrieval evaluation (default: 64).",
+    )
+
+    return parser.parse_args()
 
 
-def index_dataset(model, dataset, args):
-    """Create FAISS indices for a dataset."""
+def index(args):
+    """Create Faiss indices for specified datasets."""
 
-    logging.info(f"Creating FAISS indices for {dataset} dataset.")
-    DIR_INDEX = DIR_HOME / "data" / "indices" / args.document_encoder / dataset
-    DIR_INDEX.mkdir(parents=True, exist_ok=True)
+    datasets   = args.dataset
+    model_name = args.document_encoder
+    score_func = args.score_function
+    batch_size = args.batch_size
 
-    # Load dataset
-    data_loader = GenericDataLoader(dataset)
-    corpus, queries, qrels = data_loader.load(split="test")
+    model = models.SentenceBERT(model_name)
+    faiss_search = FlatIPFaissSearch(model, batch_size=batch_size)
 
-    # Create FAISS indices
-    faiss_search = DenseRetrievalFaissSearch(model, DIR_INDEX)
-    faiss_search.create_index(corpus)
+    def index_single_dataset(dataset_name: str):
+
+        ext = "flat"
+        prefix = model_name
+        index_file = f"{prefix}.{ext}.faiss"
+        dir_out = DIR_DATA / "faiss" / dataset_name
+        dir_raw = DIR_DATA / "raw" / dataset_name
+        url_raw = URL_DATA.format(name=dataset_name)
+
+        if os.path.isfile(dir_out / index_file):
+            logging.info(f"Faiss index for {dataset_name} with {model_name} already exists.")
+            return
+
+        logging.info(f"Loading raw {dataset_name} dataset.")
+        util.download_and_unzip(url_raw, dir_raw)
+
+        # The split parameter does not effect the indexing process as we 
+        #    only need the corpus; split choose the correct qrel to load 
+        corpus, _, _ = GenericDataLoader(dir_raw).load()
+
+        logging.info(f"Creating Faiss index for {dataset_name} dataset with {model_name}...")
+        faiss_search.index(corpus, score_function=score_func)
+
+        logging.info(f"Saving Faiss index for {dataset_name} as {index_file}...")
+        dir_out.mkdir(parents=True, exist_ok=True)
+        faiss_search.save(dir_out, prefix=model_name, ext=ext)
+
+    datasets = DATASETS if datasets is None else [datasets]
+    for dataset in tqdm.tqdm(datasets, 
+                             total=len(datasets),
+                             desc="Indexing datasets"):
+        index_single_dataset(dataset)
+    return
+
+
+if __name__ == "__main__":
+
+    index(parse_arguments())
