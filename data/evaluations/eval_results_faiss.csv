@@ -1,8 +1,0 @@
-datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,NDCG@10,NDCG@100,MAP@10,MAP@100,Recall@10,Recall@100,P@10,P@100
-2023-03-19 15:59:49,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,trec-covid,dot,16,0.72863,0.50803,0.01772,0.08601,0.01995,0.11888,0.774,0.516
-2023-03-19 15:59:49,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,nfcorpus,dot,16,0.31537,0.27745,0.11594,0.13992,0.14784,0.27273,0.23096,0.0682
-2023-03-19 15:59:51,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,fiqa,dot,16,0.31081,0.37401,0.24289,0.25829,0.37195,0.60901,0.08318,0.01477
-2023-03-19 15:59:55,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,scidocs,dot,16,0.13795,0.19454,0.07783,0.0907,0.14495,0.31108,0.0714,0.01533
-2023-03-19 16:00:06,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,arguana,dot,16,0.36112,0.4257,0.28886,0.3028,0.59602,0.89047,0.0596,0.0089
-2023-03-19 16:01:48,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,quora,dot,16,0.83175,0.85007,0.78854,0.79583,0.91528,0.98211,0.12521,0.01476
-2023-03-19 16:01:54,msmarco-bert-base-dot-v5,models/model-distillation-2023-03-15_21-36-38,scifact,dot,16,0.5921,0.62601,0.54643,0.55379,0.71389,0.87033,0.08033,0.0099
