@@ -13,13 +13,6 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-03-27 18:53:12,msmarco-bert-base-dot-v5,./models/mse-extract-4L,arguana,dot,16,0.36112,0.4257,0.28886,0.3028,0.59602,0.89047,0.0596,0.0089
 2023-03-27 18:54:56,msmarco-bert-base-dot-v5,./models/mse-extract-4L,quora,dot,16,0.83175,0.85007,0.78854,0.79583,0.91528,0.98211,0.12521,0.01476
 2023-03-27 18:55:02,msmarco-bert-base-dot-v5,./models/mse-extract-4L,scifact,dot,16,0.5921,0.62601,0.54643,0.55379,0.71389,0.87033,0.08033,0.0099
-2023-03-27 18:55:44,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,trec-covid,dot,16,0.41286,0.28558,0.00674,0.0305,0.00948,0.06019,0.424,0.287
-2023-03-27 18:55:44,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,nfcorpus,dot,16,0.25944,0.23959,0.09257,0.11331,0.12447,0.242,0.18452,0.06136
-2023-03-27 18:55:47,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,fiqa,dot,16,0.19799,0.25296,0.15128,0.16284,0.24294,0.45637,0.05262,0.01083
-2023-03-27 18:55:51,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,scidocs,dot,16,0.07163,0.11113,0.03797,0.04563,0.07403,0.19148,0.0364,0.00943
-2023-03-27 18:55:59,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,arguana,dot,16,0.21136,0.28844,0.16465,0.17949,0.36415,0.73542,0.03642,0.00735
-2023-03-27 18:57:48,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,quora,dot,16,0.76483,0.78999,0.7144,0.72272,0.86852,0.96638,0.11721,0.01435
-2023-03-27 18:57:54,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,scifact,dot,16,0.41825,0.46406,0.37532,0.38479,0.53733,0.75122,0.05967,0.00853
 2023-03-27 19:00:03,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,trec-covid,dot,16,0.74501,0.52851,0.01754,0.09234,0.01969,0.12446,0.792,0.5392
 2023-03-27 19:00:04,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,nfcorpus,dot,16,0.31506,0.28042,0.11607,0.14126,0.14903,0.27589,0.22879,0.06957
 2023-03-27 19:00:07,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,fiqa,dot,16,0.32288,0.38644,0.25277,0.26897,0.38692,0.62455,0.08735,0.01528
@@ -27,3 +20,10 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-03-27 19:00:40,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,arguana,dot,16,0.37224,0.43661,0.29681,0.31102,0.61735,0.90896,0.06174,0.00909
 2023-03-27 19:02:33,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,quora,dot,16,0.84268,0.85972,0.8009,0.80798,0.92228,0.98351,0.12657,0.01481
 2023-03-27 19:02:40,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,scifact,dot,16,0.60824,0.64383,0.56618,0.57372,0.72189,0.88767,0.082,0.01007
+2023-03-27 20:21:40,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,trec-covid,dot,16,0.18841,0.1335,0.0024,0.00847,0.00414,0.02893,0.198,0.1396
+2023-03-27 20:21:41,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,nfcorpus,dot,16,0.17024,0.16798,0.04923,0.06397,0.07875,0.19381,0.12786,0.04889
+2023-03-27 20:21:43,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,fiqa,dot,16,0.08869,0.12957,0.06194,0.06868,0.12349,0.28922,0.02562,0.00667
+2023-03-27 20:21:47,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,scidocs,dot,16,0.02861,0.05407,0.01409,0.01801,0.03103,0.10885,0.0152,0.00534
+2023-03-27 20:21:56,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,arguana,dot,16,0.0965,0.16105,0.07221,0.08324,0.17639,0.50356,0.01764,0.00504
+2023-03-27 20:23:55,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,quora,dot,16,0.63619,0.674,0.57812,0.5885,0.768,0.92246,0.10172,0.01344
+2023-03-27 20:24:02,msmarco-bert-base-dot-v5,./models/mse-align-12L-MiniLM,scifact,dot,16,0.22801,0.27747,0.19129,0.20076,0.32928,0.56533,0.03733,0.00647
