@@ -99,7 +99,7 @@ def index(args):
         prefix = model_name
         index_file = f"{prefix}.{ext}.faiss"
         dir_out = DIR_DATA / "faiss" / dataset_name
-        dir_raw = DIR_DATA / "raw" / dataset_name
+        dir_raw = DIR_DATA / "raw"
         url_raw = URL_DATA.format(name=dataset_name)
 
         if os.path.isfile(dir_out / index_file):
@@ -111,7 +111,7 @@ def index(args):
 
         # The split parameter does not effect the indexing process as we 
         #    only need the corpus; split choose the correct qrel to load 
-        corpus, _, _ = GenericDataLoader(dir_raw).load()
+        corpus, _, _ = GenericDataLoader(dir_raw / dataset_name).load()
 
         logging.info(f"Creating Faiss index for {dataset_name} dataset with {model_name}...")
         faiss_search.index(corpus, score_function=score_func)
