@@ -48,3 +48,10 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-04-05 00:04:15,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5_L_1_4,arguana,dot,16,0.28993,0.35995,0.22476,0.23886,0.50284,0.83286,0.05028,0.00833
 2023-04-05 00:06:00,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5_L_1_4,quora,dot,16,0.76133,0.78613,0.71199,0.72001,0.86136,0.95836,0.11647,0.01424
 2023-04-05 00:06:06,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5_L_1_4,scifact,dot,16,0.4656,0.5053,0.41981,0.42831,0.59033,0.77533,0.06667,0.00887
+2023-04-10 01:43:55,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,trec-covid,dot,16,0.70765,0.49591,0.01721,0.08363,0.0193,0.11636,0.744,0.5026
+2023-04-10 01:43:56,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,nfcorpus,dot,16,0.30996,0.27312,0.11135,0.1358,0.14531,0.26993,0.22724,0.06848
+2023-04-10 01:44:01,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,fiqa,dot,16,0.30067,0.36196,0.23297,0.24727,0.36244,0.59588,0.08056,0.01441
+2023-04-10 01:44:08,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,scidocs,dot,16,0.12861,0.18364,0.07247,0.08421,0.13347,0.29682,0.0658,0.01462
+2023-04-10 01:44:20,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,arguana,dot,16,0.3528,0.41952,0.28214,0.29666,0.58321,0.88691,0.05832,0.00887
+2023-04-10 01:46:26,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,quora,dot,16,0.81878,0.83844,0.77406,0.78157,0.90636,0.97874,0.1239,0.01471
+2023-04-10 01:46:32,msmarco-bert-base-dot-v5,models/co-condenser-marco-retriever_14710,scifact,dot,16,0.55034,0.59007,0.50303,0.51118,0.67828,0.868,0.07567,0.00983
