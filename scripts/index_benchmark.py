@@ -30,15 +30,15 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 DIR_HOME = pathlib.Path(__file__).parent.parent.absolute()
 DIR_DATA = DIR_HOME / "data" / "datasets"
 URL_DATA = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{name}.zip"
-DATASETS = ["trec-covid",
-            "nfcorpus",
-            # "nq",
-            # "hotpotqa",
-            "fiqa",
-            "scidocs",
-            "arguana",
-            "quora",
-            "scifact"]
+DATASETS = [
+    "trec-covid", "nfcorpus",       # Bio-medical IR
+    "nq", "fiqa",                   # Question answering
+    "scidocs",                      # Citation prediction
+    "arguana", "webis-touche2020",  # Argument retrieval
+    "quora",                        # Duplicate question retrieval
+    "scifact",                      # Fact checking
+    "dbpedia-entity"                # Entity retrieval 
+]
 
 
 def parse_arguments():
@@ -99,7 +99,7 @@ def index(args):
         prefix = model_name
         index_file = f"{prefix}.{ext}.faiss"
         dir_out = DIR_DATA / "faiss" / dataset_name
-        dir_raw = DIR_DATA / "raw"
+        dir_raw = DIR_DATA / "raw" # / dataset_name
         url_raw = URL_DATA.format(name=dataset_name)
 
         if os.path.isfile(dir_out / index_file):

@@ -34,15 +34,15 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 DIR_HOME = pathlib.Path(__file__).parent.parent.absolute()
 DIR_EVAL = DIR_HOME / "data" / "evaluations"
 DIR_DATA = DIR_HOME / "data" / "datasets"
-DATASETS = ["trec-covid",
-            "nfcorpus",
-            # "nq",
-            # "hotpotqa",
-            "fiqa",
-            "scidocs",
-            "arguana",
-            "quora",
-            "scifact"]
+DATASETS = [
+    "trec-covid", "nfcorpus",       # Bio-medical IR
+    "nq", "fiqa",                   # Question answering
+    "scidocs",                      # Citation prediction
+    "arguana", "webis-touche2020",  # Argument retrieval
+    "quora",                        # Duplicate question retrieval
+    "scifact",                      # Fact checking
+    "dbpedia-entity"                # Entity retrieval 
+]
 
 
 def parse_arguments():
