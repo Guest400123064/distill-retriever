@@ -1,0 +1,4 @@
+encoder,dataset,batch_size,run,time,speed
+./models/mse-extract-1L,nq,32,0,0.8819758892059326,3913.9391929499698
+./models/mse-extract-1L,nq,32,1,0.8747138977050781,3946.433238407159
+./models/mse-extract-1L,nq,32,2,0.8683254718780518,3975.46785369991
