@@ -8,7 +8,7 @@ This scripts evaluate the specified model on all datasets (hardcoded) in
     the scripts, or on the specified dataset from command line inputs.
 """
 
-from typing import Dict, Union, NoReturn
+from typing import List, Dict, Union, NoReturn
 
 import os
 import pathlib
@@ -134,6 +134,46 @@ def evaluate(file, args) -> NoReturn:
 
     k_values = [10, 100]
 
+    def evaluate_cqadupstack() -> Dict[str, Union[str, float]]:
+        """This is a special handler for the CQADupStack dataset. It 
+            is composed of multiple sub-datasets, and we evaluate on
+            each of them separately and the performances will be averaged."""
+        
+        logging.info(f"Evaluating {query_encoder}:{document_encoder} on cqadupstack...")
+
+        performances = []
+        dir_raw_parent = DIR_DATA / "raw" / "cqadupstack"
+        dir_idx_parent = DIR_DATA / "faiss" / "cqadupstack"
+        
+        prefix  = document_encoder
+        ext = "flat"
+
+        for sub_name in os.listdir(dir_raw_parent):
+            dir_raw = dir_raw_parent / sub_name
+            dir_idx = dir_idx_parent / sub_name
+
+            corpus, queries, qrels = GenericDataLoader(dir_raw).load()
+            faiss_search.load(dir_idx, prefix, ext)
+
+            retriever = EvaluateRetrieval(faiss_search, score_function=score_function)
+            results   = retriever.retrieve(corpus, queries)
+
+            ret = create_meta_data(document_encoder, query_encoder, 
+                                   dataset_name=f"cqadupstack",
+                                   score_function=score_function, 
+                                   batch_size=batch_size)
+            for metric in retriever.evaluate(qrels, results, k_values=k_values):
+                ret.update(metric)
+            performances.append(ret)
+
+        # Average the performances
+        avg = performances[0].copy()
+        for key in performances[0].keys():
+            data = [p[key] for p in performances]
+            if isinstance(data[0], float):
+                avg[key] = sum(data) / len(performances)
+        return avg
+
     def evaluate_single(dataset_name: str) -> Dict[str, Union[str, float]]:
         """Evaluate on a single dataset."""
         
@@ -166,7 +206,7 @@ def evaluate(file, args) -> NoReturn:
     for i, dataset in tqdm.tqdm(enumerate(datasets), 
                                 total=len(datasets),
                                 desc="Evaluating on datasets"):
-        result = evaluate_single(dataset)
+        result = evaluate_single(dataset) if dataset != "cqadupstack" else evaluate_cqadupstack()
         if i == 0:
             writer = csv.DictWriter(file, fieldnames=result.keys())
             if file.mode == "w": writer.writeheader()

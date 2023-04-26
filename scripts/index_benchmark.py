@@ -93,6 +93,43 @@ def index(args):
     model = models.SentenceBERT(model_name)
     faiss_search = FlatIPFaissSearch(model, batch_size=batch_size)
 
+
+    def index_cqadupstack():
+        """This is a special case for the CQADupStack dataset since it 
+            has a different folder structure. The dataset is composed of 
+            multiple sub-folders, each of which contains a different topic."""
+
+        ext = "flat"
+        prefix = model_name
+
+        dir_out = DIR_DATA / "faiss" / "cqadupstack"
+        dir_raw = DIR_DATA / "raw"
+        url_raw = URL_DATA.format(name="cqadupstack")
+
+        if not os.path.isdir(dir_raw / "cqadupstack"):
+            logging.info(f"Loading raw CQADupStack dataset.")
+            util.download_and_unzip(url_raw, dir_raw)
+
+        for sub_name in os.listdir(dir_raw / "cqadupstack"):
+            if not os.path.isdir(dir_raw / "cqadupstack" / sub_name):
+                continue
+
+            index_file = f"{prefix}.{ext}.faiss"
+            if os.path.isfile(dir_out / sub_name / index_file):
+                logging.info(f"Faiss index for {sub_name} with {model_name} already exists.")
+                continue
+
+            logging.info(f"Loading raw {sub_name} dataset.")
+            corpus, _, _ = GenericDataLoader(dir_raw / "cqadupstack" / sub_name).load()
+
+            logging.info(f"Creating Faiss index for cqadupstack-{sub_name} dataset with {model_name}...")
+            faiss_search.index(corpus, score_function=score_func)
+
+            logging.info(f"Saving Faiss index for cqadupstack-{sub_name} as {index_file}...")
+            dir_out.mkdir(parents=True, exist_ok=True)
+            faiss_search.save(dir_out / sub_name, prefix=model_name, ext=ext)
+
+
     def index_single_dataset(dataset_name: str):
 
         ext = "flat"
@@ -124,7 +161,10 @@ def index(args):
     for dataset in tqdm.tqdm(datasets, 
                              total=len(datasets),
                              desc="Indexing datasets"):
-        index_single_dataset(dataset)
+        if dataset == "cqadupstack":
+            index_cqadupstack()
+        else:
+            index_single_dataset(dataset)
     return
 
 
