@@ -102,3 +102,17 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-05-07 00:36:33,msmarco-bert-base-dot-v5,msmarco-distilbert-base-v3,climate-fever,dot,128,0.15643,0.22408,0.10346,0.11765,0.20276,0.44359,0.05094,0.01233
 2023-05-07 00:41:15,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,climate-fever,dot,128,0.15006,0.21613,0.10061,0.11414,0.18926,0.42564,0.04769,0.0118
 2023-05-07 00:46:16,msmarco-bert-base-dot-v5,distilbert-base-uncased,climate-fever,dot,128,0.1627,0.2299,0.10893,0.12284,0.20887,0.4495,0.05238,0.01248
+2023-05-07 04:25:03,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,fever,dot,128,0.54577,0.57904,0.49162,0.49845,0.68178,0.83421,0.07436,0.00923
+2023-05-07 04:38:54,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,fever,dot,128,0.61596,0.64162,0.56013,0.5655,0.75325,0.86986,0.08231,0.00964
+2023-05-07 04:52:42,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,fever,dot,128,0.62033,0.64636,0.56441,0.56996,0.75719,0.87491,0.08266,0.00969
+2023-05-07 05:06:34,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,fever,dot,128,0.44634,0.48536,0.39435,0.40195,0.58331,0.76668,0.06377,0.00848
+2023-05-07 05:20:14,msmarco-bert-base-dot-v5,msmarco-distilbert-base-v3,fever,dot,128,0.53456,0.56801,0.4796,0.4865,0.67374,0.82688,0.07351,0.00914
+2023-05-07 05:33:54,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,fever,dot,128,0.51937,0.55377,0.46445,0.47145,0.65938,0.81862,0.07208,0.00905
+2023-05-07 05:47:29,msmarco-bert-base-dot-v5,distilbert-base-uncased,fever,dot,128,0.56778,0.59925,0.51306,0.51965,0.70516,0.84812,0.07694,0.00939
+2023-05-07 09:36:59,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,hotpotqa,dot,128,0.36527,0.40733,0.28862,0.29784,0.3946,0.56408,0.07892,0.01128
+2023-05-07 09:51:13,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,hotpotqa,dot,128,0.42109,0.46254,0.33882,0.34879,0.44463,0.60878,0.08893,0.01218
+2023-05-07 10:05:28,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,hotpotqa,dot,128,0.44066,0.47994,0.3555,0.36491,0.46361,0.61972,0.09272,0.01239
+2023-05-07 10:19:44,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,hotpotqa,dot,128,0.28724,0.33045,0.22061,0.22992,0.32221,0.49453,0.06444,0.00989
+2023-05-07 10:34:04,msmarco-bert-base-dot-v5,msmarco-distilbert-base-v3,hotpotqa,dot,128,0.35207,0.39407,0.27683,0.28601,0.3819,0.55057,0.07638,0.01101
+2023-05-07 10:48:22,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,hotpotqa,dot,128,0.3477,0.39094,0.27293,0.28239,0.37974,0.553,0.07595,0.01106
+2023-05-07 11:02:42,msmarco-bert-base-dot-v5,distilbert-base-uncased,hotpotqa,dot,128,0.3936,0.43553,0.31321,0.32277,0.42188,0.58987,0.08438,0.0118
