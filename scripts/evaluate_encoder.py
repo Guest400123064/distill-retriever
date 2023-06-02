@@ -8,24 +8,23 @@ This scripts evaluate the specified model on all datasets (hardcoded) in
     the scripts, or on the specified dataset from command line inputs.
 """
 
-from typing import Dict, Tuple, List, Union
+from typing import List, Dict, Union, NoReturn
 
 import os
 import pathlib
 
 import csv
-import json
 
 import argparse
 
 import tqdm
 import logging
 
-from beir import util, LoggingHandler
+from beir import LoggingHandler
 from beir.retrieval import models
 from beir.datasets.data_loader import GenericDataLoader
 from beir.retrieval.evaluation import EvaluateRetrieval
-from beir.retrieval.search.dense import DenseRetrievalExactSearch as DRES
+from beir.retrieval.search.dense import FlatIPFaissSearch
 
 logging.basicConfig(format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -35,15 +34,15 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 DIR_HOME = pathlib.Path(__file__).parent.parent.absolute()
 DIR_EVAL = DIR_HOME / "data" / "evaluations"
 DIR_DATA = DIR_HOME / "data" / "datasets"
-DATASETS = {"trec-covid",
-            "nfcorpus",
-            # "nq",
-            # "hotpotqa",
-            "fiqa",
-            "scidocs",
-            "arguana",
-            "quora",
-            "scifact"}
+DATASETS = [
+    "trec-covid", "nfcorpus",       # Bio-medical IR
+    "nq", "fiqa",                   # Question answering
+    "scidocs",                      # Citation prediction
+    "arguana", "webis-touche2020",  # Argument retrieval
+    "quora",                        # Duplicate question retrieval
+    "scifact",                      # Fact checking
+    "dbpedia-entity"                # Entity retrieval 
+]
 
 
 def parse_arguments():
@@ -65,8 +64,8 @@ def parse_arguments():
     parser.add_argument(
         "--document-encoder", 
         type=str,
-        default="msmarco-MiniLM-L6-cos-v5",
-        help="Name of the pre-trained model to use for dense retrieval (default: all-MiniLM-L6-v2).",
+        default="msmarco-bert-base-dot-v5",
+        help="Name of the pre-trained model to use for dense retrieval (default: msmarco-bert-base-dot-v5).",
     )
 
     parser.add_argument(
@@ -74,6 +73,14 @@ def parse_arguments():
         type=str,
         default=None,
         help="Name of the pre-trained model to use for query encoding (default: None).",
+    )
+
+    parser.add_argument(
+        "--score-function",
+        type=str,
+        default="dot",
+        choices=["cos_sim", "dot"],
+        help="Score function to use for ranking (default: cos_sim).",
     )
 
     parser.add_argument(
@@ -86,8 +93,8 @@ def parse_arguments():
     parser.add_argument(
         "--output",
         type=str,
-        default="eval_results.csv",
-        help="Output file name for evaluation results (default: eval_results.csv).",
+        default="eval_results_faiss.csv",
+        help="Output file name for evaluation results (default: eval_results_faiss.csv).",
     )
 
     parser.add_argument(
@@ -96,13 +103,12 @@ def parse_arguments():
         help="Append to the output file if it already exists (default: False).",
     )
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def create_meta_data(document_encoder: str,
                      query_encoder: str, 
-                     **kwargs) -> Dict:
+                     **kwargs) -> Dict[str, Union[str, float]]:
     
     from datetime import datetime
 
@@ -114,62 +120,110 @@ def create_meta_data(document_encoder: str,
     return meta
 
 
-def evaluate_on_dataset(dataset_name: str, 
-                        document_encoder: str, 
-                        query_encoder: str, 
-                        batch_size: int) -> Dict[str, Union[str, float]]:
+def evaluate(file, args) -> NoReturn:
     """Evaluate the specified model on the specified dataset."""
 
-    logging.info(f"Evaluating {query_encoder}:{document_encoder} on {dataset_name}...")
+    datasets         = args.dataset
+    query_encoder    = args.query_encoder
+    document_encoder = args.document_encoder
+    score_function   = args.score_function
+    batch_size       = args.batch_size
 
-    # Load dataset
-    dataset = GenericDataLoader(os.path.join(DIR_DATA, dataset_name))
-    corpus, queries, qrels = dataset.load(split="test")
+    model_path   = document_encoder if query_encoder is None else (query_encoder, document_encoder)
+    faiss_search = FlatIPFaissSearch(models.SentenceBERT(model_path), batch_size=batch_size)
 
-    # Load model
-    model_path = document_encoder if query_encoder is None else \
-                        (query_encoder, document_encoder)
-    model = DRES(models.SentenceBERT(model_path), 
-                 batch_size=batch_size)
+    k_values = [10, 100]
 
-    # Retrieve
-    retriever = EvaluateRetrieval(model, 
-                                  score_function="cos_sim", 
-                                  k_values=[10, 100])
-    results   = retriever.retrieve(corpus, queries)
+    def evaluate_cqadupstack() -> Dict[str, Union[str, float]]:
+        """This is a special handler for the CQADupStack dataset. It 
+            is composed of multiple sub-datasets, and we evaluate on
+            each of them separately and the performances will be averaged."""
+        
+        logging.info(f"Evaluating {query_encoder}:{document_encoder} on cqadupstack...")
 
-    # Combine to a single dictionary
-    eval_results = create_meta_data(document_encoder, query_encoder, 
-                                    dataset_name=dataset_name, 
-                                    batch_size=batch_size)
-    for metric in retriever.evaluate(qrels, results, 
-                                     k_values=retriever.k_values):
-        eval_results.update(metric)
-    return eval_results
+        performances = []
+        dir_raw_parent = DIR_DATA / "raw" / "cqadupstack"
+        dir_idx_parent = DIR_DATA / "faiss" / "cqadupstack"
+        
+        prefix  = document_encoder
+        ext = "flat"
+
+        for sub_name in os.listdir(dir_raw_parent):
+            dir_raw = dir_raw_parent / sub_name
+            dir_idx = dir_idx_parent / sub_name
+
+            corpus, queries, qrels = GenericDataLoader(dir_raw).load()
+            faiss_search.load(dir_idx, prefix, ext)
+
+            retriever = EvaluateRetrieval(faiss_search, score_function=score_function)
+            results   = retriever.retrieve(corpus, queries)
+
+            ret = create_meta_data(document_encoder, query_encoder, 
+                                   dataset_name=f"cqadupstack",
+                                   score_function=score_function, 
+                                   batch_size=batch_size)
+            for metric in retriever.evaluate(qrels, results, k_values=k_values):
+                ret.update(metric)
+            performances.append(ret)
+
+        # Average the performances
+        avg = performances[0].copy()
+        for key in performances[0].keys():
+            data = [p[key] for p in performances]
+            if isinstance(data[0], float):
+                avg[key] = sum(data) / len(performances)
+        return avg
+
+    def evaluate_single(dataset_name: str) -> Dict[str, Union[str, float]]:
+        """Evaluate on a single dataset."""
+        
+        logging.info(f"Evaluating {query_encoder}:{document_encoder} on {dataset_name}...")
+
+        dir_raw = DIR_DATA / "raw" / dataset_name
+        dir_idx = DIR_DATA / "faiss" / dataset_name
+        prefix  = document_encoder
+        ext     = "flat"
+
+        # Load dataset
+        corpus, queries, qrels = GenericDataLoader(dir_raw).load()
+        faiss_search.load(dir_idx, prefix, ext)
+
+        # Retrieve
+        retriever = EvaluateRetrieval(faiss_search, score_function=score_function)
+        results   = retriever.retrieve(corpus, queries)
+
+        # Combine to a single dictionary
+        ret = create_meta_data(document_encoder, query_encoder, 
+                               dataset_name=dataset_name,
+                               score_function=score_function, 
+                               batch_size=batch_size)
+        for metric in retriever.evaluate(qrels, results, k_values=k_values):
+            ret.update(metric)
+        return ret
+
+    # Evaluate on all datasets
+    datasets = DATASETS if datasets is None else [datasets]
+    for i, dataset in tqdm.tqdm(enumerate(datasets), 
+                                total=len(datasets),
+                                desc="Evaluating on datasets"):
+        result = evaluate_single(dataset) if dataset != "cqadupstack" else evaluate_cqadupstack()
+        if i == 0:
+            writer = csv.DictWriter(file, fieldnames=result.keys())
+            if file.mode == "w": writer.writeheader()
+        writer.writerow(result)
+        file.flush()
+    return
 
 
 if __name__ == "__main__":
     
-    opt = parse_arguments()
-    datasets = opt.dataset or DATASETS
-
-    target_path = os.path.join(DIR_EVAL, opt.output)
-    if opt.append and os.path.exists(target_path):
-        logging.info(f"Appending results to {target_path}.")
-        f = open(target_path, "a")
+    args = parse_arguments()
+    eval_file = os.path.join(DIR_EVAL, args.output)
+    if args.append and os.path.exists(eval_file):
+        logging.info(f"Appending results to {eval_file}.")
+        with open(eval_file, "a") as f:
+            evaluate(f, args)
     else:
-        logging.info(f"Saving (overwrite) results to {opt.output}.")
-        f = open(target_path, "w")
-    
-    # Evaluate and save
-    for i, dataset in enumerate(datasets):
-        result = evaluate_on_dataset(dataset,
-                                     opt.document_encoder,
-                                     opt.query_encoder,
-                                     opt.batch_size)
-        if i == 0:
-            writer = csv.DictWriter(f, fieldnames=result.keys())
-            if os.stat(target_path).st_size == 0:
-                writer.writeheader()
-        writer.writerow(result)
-    f.close()
+        logging.info(f"Saving (overwrite) results to {eval_file}.")
+        with open(eval_file, "w") as f:
+            evaluate(f, args)
