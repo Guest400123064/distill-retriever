@@ -20,11 +20,12 @@ python3 distillation.py
 The script will train a student model with the default parameters. The arguments are as follows:
 ```
 --teacher_model: the path or huggingface model name of the teacher model, default: 'sentence-transformers/msmarco-bert-base-dot-v5'
---student_model_options: fill in student model path or hubbingface model name if using a different initialization, otherwise keep default: 'layer_reduction'
+--student_model_init: how to initialize student models, default: 'layer_reduction'
+--student_model_init_list: the list of huggingface names of the models that student models intialize from, required if student_model_init is not 'layer_reduction'
 --output_path: the path to save the student model, default: 'output'
 --train_batch_size: the batch size for training, default: 128
 --eval_batch_size: the batch size for evaluation, default: 128
 ```
 ### Evaluation
-
+#todo
 

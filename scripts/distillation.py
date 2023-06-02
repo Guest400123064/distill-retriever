@@ -30,11 +30,12 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 """parse command line arguments"""
 parser = argparse.ArgumentParser(description='Distill a teacher model into a student model.')
 parser.add_argument('--teacher_model', type=str, default='sentence-transformers/msmarco-bert-base-dot-v5')
-parser.add_argument('--student_model_options', type=str, default='layer_reduction')
+parser.add_argument('--student_model_init', type=str, default='layer_reduction')
 parser.add_argument('--loss_function', type=str, default='mse')
 parser.add_argument('--output_path', type=str, default='output')
 parser.add_argument('--train_batch_size', type=int, default=128)
 parser.add_argument('--eval_batch_size', type=int, default=128)
+parser.add_argument('-l','--student_model_init_list', nargs='+', help='list of ', required=True)
 args = parser.parse_args()
 
 
@@ -54,7 +55,7 @@ def load_teacher_model(model_name=args.teacher_model):
 
 # load student model
 def load_student_model(construct_mode, teacher_model=None, layers_to_keep=[1, 4, 7, 10]):
-    # if layer reduction
+    # if initialize from teacher model
     if construct_mode == 'layer_reduction':
         if teacher_model is None:
             student_model = load_teacher_model()
@@ -136,25 +137,43 @@ with gzip.open(sts_dataset_path, 'rt', encoding='utf8') as fIn:
 dev_evaluator_sts = evaluation.EmbeddingSimilarityEvaluator.from_input_examples(dev_samples, name='sts-dev')
 
 logging.info("Teacher model performance over STS benchmark : {}".format(dev_evaluator_sts(teacher_model)))
-logging.info("Student model performance over STS benchmark : {}".format(dev_evaluator_sts(student_model)))
 
 
-"""create dataset, data loader, and loss function for training student model"""
-# Use parallel sentences dataset to train the student model
-train_data = ParallelSentencesDataset(student_model=student_model, teacher_model=teacher_model, batch_size=args.batch_size)
-train_data.add_dataset([[sent] for sent in train_queries], max_sentence_length=256)
-train_dataloader = DataLoader(train_data, shuffle=True, batch_size=args.train_batch_size)
-if args.loss_function == 'mse':
-    train_loss = losses.MSELoss(student_model, teacher_model)
-elif args.loss_function == 'cosine':
-    train_loss = losses.CosineSimilarityLoss(student_model, teacher_model)
-else:
-    train_loss = losses.MSELoss(student_model, teacher_model) + losses.CosineSimilarityLoss(student_model, teacher_model)
+eval_examples = []
+sub_eval_queries = random.sample(eval_queries, 128)
+sub_eval_query_pairs = list(itertools.combinations(sub_eval_queries,2))
+print(len(sub_eval_query_pairs))
+
+start_time = time.time()
+for pair in sub_eval_query_pairs:
+    eval_examples.append(InputExample(texts=pair, label=util.dot_score(teacher_model.encode(pair[0]), teacher_model.encode(pair[1])).cpu().item()))
+    
+
+
+eval_query_sim = evaluation.EmbeddingSimilarityEvaluator.from_input_examples(eval_examples, name='eval_query_dot', show_progress_bar=False, main_similarity=evaluation.SimilarityFunction.EUCLIDEAN, write_csv=True)
+end_time = time.time()
+print("Time takes to embed a batch of 128: {:.4f} seconds".format(end_time - start_time))
 eval_evaluator_mse = evaluation.MSEEvaluator(eval_queries, eval_queries, teacher_model=teacher_model)
+# logging.info("Student model performance over STS benchmark : {}".format(dev_evaluator_sts(student_model)))
 
 
-def extract_layers_and_train(teacher_model, student_layers, original_model=None):
-    model_name_ = "basemodel" if original_model is None else original_model
+# """create dataset, data loader, and loss function for training student model"""
+# # Use parallel sentences dataset to train the student model
+# train_data = ParallelSentencesDataset(student_model=student_model, teacher_model=teacher_model, batch_size=args.batch_size)
+# train_data.add_dataset([[sent] for sent in train_queries], max_sentence_length=256)
+# train_dataloader = DataLoader(train_data, shuffle=True, batch_size=args.train_batch_size)
+# if args.loss_function == 'mse':
+#     train_loss = losses.MSELoss(student_model, teacher_model)
+# elif args.loss_function == 'cosine':
+#     train_loss = losses.CosineSimilarityLoss(student_model, teacher_model)
+# else:
+#     train_loss = losses.MSELoss(student_model, teacher_model) + losses.CosineSimilarityLoss(student_model, teacher_model)
+# eval_evaluator_mse = evaluation.MSEEvaluator(eval_queries, eval_queries, teacher_model=teacher_model)
+
+"""initialization from teacher model"""
+def extract_layers_and_train_from_teacher(teacher_model, student_layers, original_model=None):
+    model_name_ = args.output_path
+    model_name_ += "basemodel" if original_model is None else original_model
     if not os.path.exists(model_name_):
         os.makedirs(model_name_)
     for i, layer_list in enumerate(student_layers):
@@ -163,11 +182,11 @@ def extract_layers_and_train(teacher_model, student_layers, original_model=None)
         model_name = model_name_ + "_{}layer".format(len(layer_list))
         for layer in layer_list:
             model_name += "_{}".format(layer)
-        print("===============")
-        print("+++++++   {}th model:   ".format(i) + model_name + "   ++++++++")
+        logging.info("===============")
+        logging.info("+++++++   {}th model:   ".format(i) + model_name + "   ++++++++")
         # test similarity
-        print("Similarity score with sts-b embedding before training: {:.4f}".format(dev_evaluator_sts(student_model)))
-        print("Euclidean similarity score with teacher embedding before training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=0)))
+        logging.info("Similarity score with sts-b embedding before training: {:.4f}".format(dev_evaluator_sts(student_model)))
+        logging.info("Euclidean similarity score with teacher embedding before training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=0)))
         # prepare data
         train_data = ParallelSentencesDataset(student_model=student_model, teacher_model=teacher_model, batch_size=128)
         train_data.add_dataset([[sent] for sent in train_queries], max_sentence_length=256)
@@ -185,11 +204,11 @@ def extract_layers_and_train(teacher_model, student_layers, original_model=None)
                       optimizer_params={'lr': 1e-4, 'eps': 1e-6},
                       use_amp=True)
         # test similarity
-        print("Similarity score with sts-b embedding after training: {:.4f}".format(dev_evaluator_sts(student_model)))
-        print("Euclidean similarity score with teacher embedding after training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=1)))
-        student_model.save_to_hub = new_save_to_hub
+        logging.info("Similarity score with sts-b embedding after training: {:.4f}".format(dev_evaluator_sts(student_model)))
+        logging.info("Euclidean similarity score with teacher embedding after training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=1)))
+        # student_model.save_to_hub = new_save_to_hub
         student_model.save_to_hub(student_model, repo_name=model_name, exist_ok=True)
-        print("===============\n\n")
+        logging.info("===============\n\n")
         
 base_model_extraction_scheme = [[1, 4, 7, 10],
                                 [0, 1, 10, 11],
@@ -202,23 +221,69 @@ base_model_extraction_scheme = [[1, 4, 7, 10],
                                 [1, 11],
                                 [0], [1], [10], [11]]
                                 
+
+"""intialization from other models"""
+def extract_layers_and_train_from_others(teacher_model, student_model_init, other_names):
+    model_name_ = other_names
+    if not os.path.exists(model_name_):
+        os.makedirs(model_name_)
+    for i, model_init in enumerate(student_model_init):
+        # create student model
+        student_model = load_student_model(model_init, teacher_model)
+        model_name = model_init[model_init.rfind('/')+1:]
+        logging.info(student_model)
+        logging.info("===============")
+        logging.info("+++++++   {}th model:   ".format(i) + model_name + "   ++++++++")
+        # test similarity
+        logging.info("Similarity score with sts-b embedding before training: {:.4f}".format(dev_evaluator_sts(student_model)))
+        logging.info("Euclidean similarity score with teacher embedding before training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=0)))
+        # prepare data
+        train_data = ParallelSentencesDataset(student_model=student_model, teacher_model=teacher_model, batch_size=128)
+        train_data.add_dataset([[sent] for sent in train_queries], max_sentence_length=256)
+        train_dataloader = DataLoader(train_data, shuffle=True, batch_size=128)
+        train_loss = losses.MSELoss(model=student_model)
+        # train model
+        output_path = model_name_+ "/output/" + model_name + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        student_model.fit(train_objectives=[(train_dataloader, train_loss)],
+                      evaluator=evaluation.SequentialEvaluator([eval_evaluator_mse, dev_evaluator_sts]),
+                      epochs=1,
+                      warmup_steps=1000,
+                      evaluation_steps=2000,
+                      output_path=output_path,
+                      save_best_model=True,
+                      optimizer_params={'lr': 1e-4, 'eps': 1e-6},
+                      use_amp=True)
+        # test similarity
+        logging.info("Similarity score with sts-b embedding after training: {:.4f}".format(dev_evaluator_sts(student_model)))
+        logging.info("Euclidean similarity score with teacher embedding after training: {:.4f}".format(eval_query_sim(student_model, output_path=model_name_, epoch=i, steps=1)))
+        # student_model.save_to_hub = new_save_to_hub
+        student_model.save_to_hub(student_model, repo_name=model_name, exist_ok=True)
+        logging.info("===============\n\n")
+        
+                    
                                 
-extract_layers_and_train(teacher_model, base_model_extraction_scheme)
 
-"""train student model"""
-output_path = "output/model-distillation-" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-student_model.fit(train_objectives=[(train_dataloader, train_loss)],
-                  evaluator=eval_evaluator_mse,
-                  epochs=1,
-                  warmup_steps=1000,
-                  evaluation_steps=5000,
-                  output_path=output_path,
-                  save_best_model=True,
-                  optimizer_params={'lr': 1e-4, 'eps': 1e-6},
-                  use_amp=True)
 
-logging.info("Teacher model performance over STS benchmark : {}".format(dev_evaluator_sts(teacher_model)))
-logging.info("Student model performance over STS benchmark : {}".format(dev_evaluator_sts(student_model)))
+
+if args.student_model_init == 'layer_reduction':
+    extract_layers_and_train_from_teacher(teacher_model, base_model_extraction_scheme)
+else:
+    extract_layers_and_train_from_others(teacher_model, args.student_model_init_list, "output/other_models")
+
+# """train student model"""
+# output_path = "output/model-distillation-" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+# student_model.fit(train_objectives=[(train_dataloader, train_loss)],
+#                   evaluator=eval_evaluator_mse,
+#                   epochs=1,
+#                   warmup_steps=1000,
+#                   evaluation_steps=5000,
+#                   output_path=output_path,
+#                   save_best_model=True,
+#                   optimizer_params={'lr': 1e-4, 'eps': 1e-6},
+#                   use_amp=True)
+
+# logging.info("Teacher model performance over STS benchmark : {}".format(dev_evaluator_sts(teacher_model)))
+# logging.info("Student model performance over STS benchmark : {}".format(dev_evaluator_sts(student_model)))
 
 
 
