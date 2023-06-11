@@ -1,14 +1,4 @@
 datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,NDCG@10,NDCG@100,MAP@10,MAP@100,Recall@10,Recall@100,P@10,P@100
-2023-04-19 19:20:17,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,trec-covid,dot,128,0.472,0.33988,0.00885,0.0433,0.01146,0.07717,0.482,0.3458
-2023-04-19 19:20:17,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,nfcorpus,dot,128,0.23803,0.22041,0.07336,0.09436,0.11001,0.23773,0.18111,0.06006
-2023-04-19 19:22:24,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,nq,dot,128,0.35942,0.41259,0.29962,0.31088,0.52168,0.76159,0.06104,0.00913
-2023-04-19 19:22:30,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,fiqa,dot,128,0.21789,0.27912,0.16048,0.17427,0.27985,0.51455,0.0608,0.01221
-2023-04-19 19:22:36,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,scidocs,dot,128,0.07785,0.12447,0.04118,0.04964,0.08333,0.22348,0.0411,0.011
-2023-04-19 19:22:50,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,arguana,dot,128,0.24443,0.31812,0.18776,0.20202,0.42745,0.78165,0.04275,0.00782
-2023-04-19 19:23:10,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,webis-touche2020,dot,128,0.25017,0.34246,0.0957,0.1466,0.15928,0.4321,0.22653,0.06918
-2023-04-19 19:23:58,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,quora,dot,128,0.72148,0.75196,0.6712,0.68041,0.82424,0.94616,0.11098,0.01398
-2023-04-19 19:24:07,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,scifact,dot,128,0.41004,0.46244,0.36351,0.37428,0.53561,0.78022,0.06,0.00887
-2023-04-19 19:38:06,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,dbpedia-entity,dot,128,0.24103,0.26349,0.08763,0.12416,0.12768,0.29599,0.19525,0.0646
 2023-04-19 19:38:35,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,trec-covid,dot,128,0.67576,0.46395,0.01495,0.07177,0.01757,0.10646,0.706,0.4676
 2023-04-19 19:38:36,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,nfcorpus,dot,128,0.29657,0.26368,0.10592,0.12935,0.14273,0.26243,0.21765,0.06659
 2023-04-19 19:40:42,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,nq,dot,128,0.48028,0.52473,0.41072,0.4205,0.66768,0.86604,0.07897,0.01045
@@ -70,7 +60,6 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-04-17 20:57:44,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,scifact,dot,128,0.60824,0.64383,0.56618,0.57372,0.72189,0.88767,0.082,0.01007
 2023-04-18 07:09:30,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,dbpedia-entity,dot,128,0.385,0.41423,0.17542,0.24529,0.23285,0.46545,0.31625,0.09495
 2023-04-24 18:04:08,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,cqadupstack,dot,128,0.2579591666666667,0.29306666666666664,0.22485750000000002,0.23209333333333326,0.32622083333333335,0.48412666666666665,0.04354416666666667,0.007139166666666665
-2023-04-24 19:08:33,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,cqadupstack,dot,128,0.19043916666666663,0.22418833333333332,0.16361166666666668,0.170265,0.24758416666666663,0.4001875000000001,0.03250583333333333,0.005833333333333334
 2023-04-24 19:10:13,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,cqadupstack,dot,128,0.21249166666666663,0.24720833333333334,0.18323416666666667,0.190245,0.2746558333333334,0.43073083333333334,0.036213333333333333,0.006305000000000001
 2023-04-24 19:11:54,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,cqadupstack,dot,128,0.21786166666666665,0.25255333333333335,0.18829916666666666,0.19531833333333334,0.27993916666666663,0.4359058333333334,0.0371125,0.006389999999999999
 2023-04-24 19:13:35,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,cqadupstack,dot,128,0.1481125,0.1804233333333333,0.12557000000000001,0.13170833333333334,0.1980766666666667,0.34461416666666667,0.0257275,0.004960833333333334
@@ -78,7 +67,6 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-04-24 19:17:01,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,cqadupstack,dot,128,0.18505749999999999,0.2180558333333333,0.15853333333333336,0.16493499999999997,0.2424241666666667,0.39216333333333336,0.03174916666666667,0.005704999999999999
 2023-04-24 19:18:47,msmarco-bert-base-dot-v5,distilbert-base-uncased,cqadupstack,dot,128,0.20357166666666662,0.23757333333333328,0.17555916666666668,0.18231999999999995,0.26266416666666664,0.41670999999999997,0.03469166666666666,0.006071666666666667
 2023-04-24 22:26:13,msmarco-bert-base-dot-v5,msmarco-bert-base-dot-v5,msmarco,dot,128,0.44397,0.4964,0.37406,0.38518,0.65766,0.89764,0.06877,0.0095
-2023-04-24 23:11:58,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,msmarco,dot,128,0.39538,0.4519,0.33039,0.34199,0.59453,0.85714,0.06212,0.00905
 2023-04-24 23:15:01,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,msmarco,dot,128,0.41212,0.46725,0.34536,0.35686,0.61655,0.87074,0.06441,0.0092
 2023-04-24 23:18:07,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,msmarco,dot,128,0.41476,0.46952,0.34787,0.35925,0.61951,0.87211,0.06471,0.00922
 2023-04-24 23:21:28,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,msmarco,dot,128,0.34614,0.40345,0.28666,0.29808,0.52872,0.79857,0.05523,0.00842
@@ -95,21 +83,18 @@ datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,N
 2023-04-25 02:22:08,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,quora,dot,128,0.75101,0.77792,0.70078,0.70931,0.85334,0.96005,0.11548,0.01423
 2023-04-25 02:22:19,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,scifact,dot,128,0.4394,0.48076,0.39423,0.4027,0.56422,0.75756,0.06333,0.00863
 2023-04-25 03:17:08,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,dbpedia-entity,dot,128,0.26533,0.29055,0.09899,0.14116,0.14176,0.32736,0.21875,0.07085
-2023-05-07 00:18:07,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,climate-fever,dot,128,0.15224,0.21824,0.10069,0.11412,0.19718,0.43444,0.04977,0.01205
 2023-05-07 00:22:34,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,climate-fever,dot,128,0.17511,0.24225,0.11948,0.13368,0.2218,0.4599,0.0557,0.01281
 2023-05-07 00:27:16,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,climate-fever,dot,128,0.18161,0.24773,0.12378,0.13791,0.22808,0.46187,0.05759,0.01284
 2023-05-07 00:31:52,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,climate-fever,dot,128,0.14538,0.21022,0.09515,0.10797,0.18863,0.42364,0.04769,0.01181
 2023-05-07 00:36:33,msmarco-bert-base-dot-v5,msmarco-distilbert-base-v3,climate-fever,dot,128,0.15643,0.22408,0.10346,0.11765,0.20276,0.44359,0.05094,0.01233
 2023-05-07 00:41:15,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,climate-fever,dot,128,0.15006,0.21613,0.10061,0.11414,0.18926,0.42564,0.04769,0.0118
 2023-05-07 00:46:16,msmarco-bert-base-dot-v5,distilbert-base-uncased,climate-fever,dot,128,0.1627,0.2299,0.10893,0.12284,0.20887,0.4495,0.05238,0.01248
-2023-05-07 04:25:03,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,fever,dot,128,0.54577,0.57904,0.49162,0.49845,0.68178,0.83421,0.07436,0.00923
 2023-05-07 04:38:54,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,fever,dot,128,0.61596,0.64162,0.56013,0.5655,0.75325,0.86986,0.08231,0.00964
 2023-05-07 04:52:42,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,fever,dot,128,0.62033,0.64636,0.56441,0.56996,0.75719,0.87491,0.08266,0.00969
 2023-05-07 05:06:34,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,fever,dot,128,0.44634,0.48536,0.39435,0.40195,0.58331,0.76668,0.06377,0.00848
 2023-05-07 05:20:14,msmarco-bert-base-dot-v5,msmarco-distilbert-base-v3,fever,dot,128,0.53456,0.56801,0.4796,0.4865,0.67374,0.82688,0.07351,0.00914
 2023-05-07 05:33:54,msmarco-bert-base-dot-v5,distilbert-base-nli-stsb-mean-tokens,fever,dot,128,0.51937,0.55377,0.46445,0.47145,0.65938,0.81862,0.07208,0.00905
 2023-05-07 05:47:29,msmarco-bert-base-dot-v5,distilbert-base-uncased,fever,dot,128,0.56778,0.59925,0.51306,0.51965,0.70516,0.84812,0.07694,0.00939
-2023-05-07 09:36:59,msmarco-bert-base-dot-v5,msmarco-distilbert-base-dot-prod-v3,hotpotqa,dot,128,0.36527,0.40733,0.28862,0.29784,0.3946,0.56408,0.07892,0.01128
 2023-05-07 09:51:13,msmarco-bert-base-dot-v5,msmarco-distilbert-base-tas-b,hotpotqa,dot,128,0.42109,0.46254,0.33882,0.34879,0.44463,0.60878,0.08893,0.01218
 2023-05-07 10:05:28,msmarco-bert-base-dot-v5,msmarco-distilbert-dot-v5,hotpotqa,dot,128,0.44066,0.47994,0.3555,0.36491,0.46361,0.61972,0.09272,0.01239
 2023-05-07 10:19:44,msmarco-bert-base-dot-v5,msmarco-distilbert-cos-v5,hotpotqa,dot,128,0.28724,0.33045,0.22061,0.22992,0.32221,0.49453,0.06444,0.00989
