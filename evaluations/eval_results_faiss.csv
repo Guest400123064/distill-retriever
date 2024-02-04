@@ -1,0 +1,2 @@
+datetime,document_encoder,query_encoder,dataset_name,score_function,batch_size,NDCG@10,NDCG@100,MAP@10,MAP@100,Recall@10,Recall@100,P@10,P@100
+2024-02-03 16:35:01,msmarco-bert-base-dot-v5,./models/reproduce-2l,fiqa,dot,16,0.29691,0.35891,0.22929,0.24435,0.36055,0.59458,0.08102,0.01438
