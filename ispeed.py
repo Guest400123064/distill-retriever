@@ -5,8 +5,11 @@
 # Date: 2024-02-04
 """Evaluate the inference speed over BEIR queries."""
 
-from typing import List
+from typing import List, Dict
+from collections import deque
+from itertools import product
 
+import os
 import pathlib
 
 import time
@@ -21,7 +24,6 @@ from sentence_transformers import SentenceTransformer, LoggingHandler
 
 
 DIR_THIS = pathlib.Path(__file__).resolve().parent
-DIR_EVAL = DIR_THIS / "evaluations"
 DIR_DATA = DIR_THIS / "benchmarks" / "raw"
 
 DATASETS = [
@@ -36,7 +38,6 @@ DATASETS = [
 ]
 
 
-torch.cuda.empty_cache()
 torch.set_num_threads(4)
 
 logging.basicConfig(
@@ -47,13 +48,74 @@ logging.basicConfig(
 )
 
 
-def load_queries(dataset: str, max_sentences: int) -> List[str]:
+def load_beir_queries(args: argparse.Namespace) -> Dict[str, List[str]]:
+    """Load the queries from the BEIR benchmark."""
 
-    logging.info(f"Loading queries from {dataset} dataset.")
-    path_queries = DIR_DATA / dataset / "queries.jsonl"
-    with open(path_queries, "r") as fIn:
-        queries = [json.loads(line)["text"] for line in fIn]
-    return queries[:max_sentences]
+    queue = deque()
+    for name in args.datasets:
+        if name != "cqadupstack":
+            queue.append(DIR_DATA / name)
+            continue
+
+        for sub_name in os.listdir(DIR_DATA / name):
+            queue.append(DIR_DATA / name / sub_name)
+
+    queries = {}
+    while queue:
+        path = queue.popleft()
+        with open(path / "queries.jsonl", "r") as fin:
+            queries[path.name] = [
+                json.loads(line)["text"] for idx, line in enumerate(fin)
+                if idx < args.max_sentences
+            ]
+
+    return queries
+
+
+def evaluate_inference_speed(args: argparse.Namespace) -> None:
+    """Evaluate the inference speed of sentence encoders over all
+    specified datasets."""
+
+    def _time_once(model, queries, batch_size) -> float:
+        start_time = time.time()
+        model.encode(queries, batch_size=batch_size, show_progress_bar=False)
+        return time.time() - start_time
+
+    datasets = load_beir_queries(args)
+    records = []
+
+    for encoder in args.encoders:
+        torch.cuda.empty_cache()
+        device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+        model = SentenceTransformer(encoder)
+
+        for (name, queries), batch_size in product(datasets.items(), args.batch_sizes):
+            logging.info(f"Evaluating {encoder} over {name} with batch size {batch_size}...")
+
+            # Discard the first run as the model needs to be loaded
+            # with some overhead that is not representative of the
+            # actual inference speed.
+            _time_once(model, queries, batch_size)
+
+            # Actual runs
+            for i in range(args.num_runs):
+                time_elapsed = _time_once(model, queries, batch_size)
+
+                logging.info(f"Run {i + 1} done after {time_elapsed:.2f} seconds")
+                records.append({
+                    "device":     device,
+                    "encoder":    pathlib.Path(encoder).name,
+                    "dataset":    name.replace("/", "-"),
+                    "batch_size": batch_size,
+                    "run":        i,
+                    "time":       time_elapsed,
+                    "throughput": len(queries) / time_elapsed,
+                })
+
+    with open(args.output, "w") as fout:
+        writer = csv.DictWriter(fout, fieldnames=records[0].keys())
+        writer.writeheader()
+        writer.writerows(records)
 
 
 def get_args() -> argparse.Namespace:
@@ -78,16 +140,18 @@ def get_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--encoder",
+        "--encoders",
         type=str,
-        default="msmarco-bert-base-dot-v5",
-        help="Name of the sentence encoder model to use",
+        nargs="+",
+        required=True,
+        help="Name of the sentence encoder models to test",
     )
     parser.add_argument(
-        "--batch-size",
+        "--batch-sizes",
         type=int,
-        default=32,
-        help="Batch size to use",
+        nargs="+",
+        required=True,
+        help="Batch sizes to experiment with",
     )
     parser.add_argument(
         "--max-sentences", 
@@ -114,44 +178,4 @@ def get_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = get_args()
-
-    model = SentenceTransformer(args.encoder)
-    sentences = load_queries(args.dataset, args.max_sentences)
-
-    logging.info(f"Model Name: {args.encoder}")
-    logging.info(f"Number of sentences: {len(sentences)}")
-    logging.info(f"Batch size: {args.batch_size}")
-
-    # Discard first run
-    start_time = time.time()
-    model.encode(sentences, batch_size=args.batch_size, show_progress_bar=False)
-    end_time = time.time()
-
-    records = []
-    for i in range(args.num_runs):
-        logging.info("Run {}".format(i + 1))
-        start_time = time.time()
-        model.encode(sentences, batch_size=args.batch_size, show_progress_bar=True)
-        diff_time = time.time() - start_time
-        
-        logging.info("Done after {:.2f} seconds".format(diff_time))
-        logging.info("Speed: {:.2f} sentences / second".format(len(sentences) / diff_time))
-        records.append({
-            "encoder": args.encoder,
-            "dataset": args.dataset,
-            "batch_size": args.batch_size,
-            "run": i,
-            "time": diff_time,
-            "speed": len(sentences) / diff_time
-        })
-
-    path_output = DIR_EVAL / args.output
-    if not path_output.exists():
-        with open(DIR_EVAL / args.output, "w") as fOut:
-            writer = csv.DictWriter(fOut, fieldnames=records[0].keys())
-            writer.writeheader()
-            writer.writerows(records)
-    else:
-        with open(DIR_EVAL / args.output, "a") as fOut:
-            writer = csv.DictWriter(fOut, fieldnames=records[0].keys())
-            writer.writerows(records)
+    evaluate_inference_speed(args)
