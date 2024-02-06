@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # File: benchmark.py
 # Author: Yuxuan Wang
-# Date: 2024-02-04
-"""Evaluate retrieval performance over the BEIR benchmark."""
+# Date: 2024-02-05
+"""Evaluate retrieval performance over the BEIR benchmark. Benchmark files
+will be downloaded and indexed if not already present."""
 
 import os
 import pathlib
@@ -14,14 +15,16 @@ import argparse
 
 from collections import deque
 
+import pandas as pd
+
 from beir import util, LoggingHandler
 from beir.datasets.data_loader import GenericDataLoader
 from beir.retrieval.models import SentenceBERT
+from beir.retrieval.evaluation import EvaluateRetrieval
 from beir.retrieval.search.dense import FlatIPFaissSearch
 
 
 DIR_THIS = pathlib.Path(__file__).resolve().parent
-DIR_EVAL = DIR_THIS / "evaluations"
 DIR_BEIR_RAW = DIR_THIS / "benchmarks" / "raw"
 DIR_BEIR_IDX = DIR_THIS / "benchmarks" / "faiss"
 
@@ -95,7 +98,7 @@ def create_faiss_index(args: argparse.Namespace) -> None:
             logging.info(f"Index for {ds_name} already exists. Skipping...")
             continue
 
-        corpus, _, _ = GenericDataLoader(dir_raw).load()
+        corpus, _, _ = GenericDataLoader(dir_raw).load(split="test")  # The split does not matter
         index.index(corpus, score_function=args.score_function)
 
         dir_idx.mkdir(parents=True, exist_ok=True)
@@ -103,6 +106,62 @@ def create_faiss_index(args: argparse.Namespace) -> None:
 
         logging.info(f"Index at {dir_idx / index_file_name} created successfully.")
         return None
+
+
+def evaluate_query_encoder(args: argparse.Namespace) -> None:
+    """Evaluate the retrieval performance of a query encoder over the BEIR benchmark."""
+
+    encoders = args.document_encoder if args.query_encoder is None else \
+        (args.query_encoder, args.document_encoder)
+    index = FlatIPFaissSearch(SentenceBERT(encoders), batch_size=args.batch_size)
+
+    queue = deque()  # [ local_save_dir_name... ]
+    for name in args.datasets or DATASETS:
+        download_dataset_from_beir(name)
+
+        if name != "cqadupstack":
+            queue.append(name)
+            continue
+
+        # Special handling for the CQADupStack dataset because the dataset has
+        # subdirectories for each topic; so we need to flatten the directory.
+        for sub_name in os.listdir(DIR_BEIR_RAW / "cqadupstack"):
+            sub_name = str(os.path.join("cqadupstack", sub_name))
+            queue.append(sub_name)
+
+    records = []
+    while queue:
+        ds_name = queue.popleft()
+        dir_raw = DIR_BEIR_RAW / ds_name
+        dir_idx = DIR_BEIR_IDX / ds_name
+
+        corpus, queries, qrels = GenericDataLoader(dir_raw).load(split=args.split)
+        index.load(dir_idx, prefix=args.document_encoder, ext=args.extension)
+        index_file_name = f"{args.document_encoder}.{args.extension}.faiss"
+
+        retriever = EvaluateRetrieval(index, score_function=args.score_function)
+        results = retriever.retrieve(corpus, queries)
+
+        logging.info(
+            f"Evaluating query encoder {args.query_encoder or args.document_encoder} "
+            f"over {ds_name} ({index_file_name})..."
+        )
+
+        record = {}
+        for metric in retriever.evaluate(qrels, results, k_values=args.k_values):
+            record.update(metric)
+
+        record.update({
+            "datetime": pd.Timestamp.now(),
+            "dataset": ds_name.replace("/", "-"),
+            "document_encoder": args.document_encoder,
+            "query_encoder": args.query_encoder or args.document_encoder,
+        })
+        records.append(record)
+
+    records = pd.DataFrame(records)
+    records.to_csv(args.output, index=False)
+    return None
 
 
 def get_args() -> argparse.Namespace:
@@ -124,7 +183,7 @@ def get_args() -> argparse.Namespace:
         choices=DATASETS,
         help=(
             "Dataset names to evaluate on. All datasets will be used "
-            "if not specified (default: None)",
+            "if not specified (default: None)"
         ),
     )
     parser.add_argument(
@@ -135,11 +194,40 @@ def get_args() -> argparse.Namespace:
         help="Document encoder model name (default: 'msmarco-bert-base-dot-v5')",
     )
     parser.add_argument(
+        "--query-encoder",
+        type=str,
+        default=None,
+        required=False,
+        help="Name of the query encoder to test; default to be the same as document encoder",
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="test",
+        required=False,
+        choices=["train", "dev", "test"],
+        help="Dataset split to evaluate on (default: 'test')",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="beir_evaluation_results.csv",
+        help="Path to the evaluation result",
+    )
+    parser.add_argument(
         "--extension",
         type=str,
         required=False,
         default="flat",
         help="FAISS index extension (default: 'flat')",
+    )
+    parser.add_argument(
+        "--k-values",
+        type=int,
+        nargs="+",
+        required=False,
+        default=[10, 100],
+        help="Top-k values for evaluation (default: [10, 100])",
     )
     parser.add_argument(
         "--score-function",
@@ -154,7 +242,10 @@ def get_args() -> argparse.Namespace:
         type=int,
         required=False,
         default=16,
-        help="Batch size for index creation (default: 16)",
+        help=(
+            "Batch size for index creation; use larger batch size "
+            "for faster index creation (default: 16)"
+        ),
     )
 
     args = parser.parse_args()
@@ -164,3 +255,4 @@ def get_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = get_args()
     create_faiss_index(args)
+    evaluate_query_encoder(args)
