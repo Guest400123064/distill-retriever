@@ -1,5 +1,3 @@
-.PHONY: example dist bench speed
-
 example: speed
     @echo "Example pipeline: dist -> bench -> speed"
 
