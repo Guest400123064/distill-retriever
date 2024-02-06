@@ -4,7 +4,7 @@ example: speed
 	@echo "Example pipeline: dist -> bench -> speed"
 
 dist:
-	python3 distill.py \
+    python3 distill.py \
 		--teacher msmarco-bert-base-dot-v5 \
 		--init-with subset \
 		--layers 0 11 \
@@ -31,7 +31,7 @@ bench: dist
 		--batch-size 32
 
 speed: bench
-	python3 ispeed.py \
+    python3 ispeed.py \
 		--datasets scifact fiqa nfcorpus \
 		--encoders msmarco-bert-base-dot-v5 models/subset-2l \
 		--batch-sizes 16 32 64 \
