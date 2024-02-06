@@ -117,7 +117,6 @@ def evaluate_query_encoder(args: argparse.Namespace) -> None:
 
     queue = deque()  # [ local_save_dir_name... ]
     for name in args.datasets or DATASETS:
-        download_dataset_from_beir(name)
 
         if name != "cqadupstack":
             queue.append(name)
