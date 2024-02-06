@@ -1,7 +1,7 @@
 .PHONY: example dist bench speed
 
 example: speed
-	@echo "Example pipeline: dist -> bench -> speed"
+    @echo "Example pipeline: dist -> bench -> speed"
 
 dist:
     python3 distill.py \
