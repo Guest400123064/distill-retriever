@@ -15,37 +15,26 @@ Alternatively, one can leverage `conda` via:
 conda env create -f environment.yml 
 ```
 
-## __Usage__
-### __Scripts__
+__Also, one need sufficient GPU RAM to create embedding indexing for some of the large evaluation corpus like [HotpotQA](https://hotpotqa.github.io/).__ 
+
+## __Usages__
 One can refer to the [`Makefile`](./Makefile) for a simple example workflow that distill and evaluate a two-layer query encoder from [`msmarco-bert-base-dot-v5`](https://huggingface.co/sentence-transformers/msmarco-bert-base-dot-v5). To run the example, type:
 ```
 make example
 ```
 
-There are three scripts 
+Three scripts drives this work. [`distill.py`](./distill.py) initializes a student based on one of the two strategies in the paper as specified, and minimize the embedding Euclidean distances over the MS MARCO queries. The output __directory__ should be specified by the user, usually `models/<YOUR_MODEL_NAME>/`. [`benchmark.py`](./benchmark.py) help download and index BEIR datasets under `benchmarks/`. Two sub folders `benchmarks/raw/` and `benchmarks/faiss/` will be created to store the raw corpus and FAISS indexing. It will then evaluate the specified query encoder with common performance metrics like `nDCG@k`. [`ispeed.py`](./ispeed.py) help evaluate inference throughput on a single CUDA device. All scripts comes with a help page, type:
+```
+python <SCRIPT_NAME>.py --help
+```
 
-### __Data__
+The implementation is simple and should be straightforward to read or adapt. However, please feel free to email `wangy49@seas.upenn.edu` for clarification.
+
+## __Training Data__
 We use the [MS MARCO](https://microsoft.github.io/msmarco/) dataset for model distillation. Specifically, we only used the queries from the training set (and dev set for validation). The `distill.py` script will automatically download the dataset and save it under the `downloads/` folder. There should be a copy of the dataset within this repository as well.
 
-### __Distillation__
-To train a student model, run the following command:
-```
-python3 distillation.py
-```
-The script will train a student model with the default parameters. The arguments are as follows:
-```
---teacher_model: the path or huggingface model name of the teacher model, default: 'sentence-transformers/msmarco-bert-base-dot-v5'
---student_model_init: how to initialize student models, default: 'layer_reduction'
---student_model_init_list: the list of huggingface names of the models that student models intialize from, required if student_model_init is not 'layer_reduction'
---output_path: the path to save the student model, default: 'output'
---train_batch_size: the batch size for training, default: 128
---eval_batch_size: the batch size for evaluation, default: 128
-```
-### __Retrieval Performance Evaluation__
-### __Inference Speedup Evaluation__
-
 ## __Citing & Authors__
-If you find this work helpful, feel free to cite [our publication](https://aclanthology.org/2023.sustainlp-1.23/) submitted to the SustaiNLP workshop at ACL 2023.
+If you find this work helpful, feel free to cite [our publication](https://aclanthology.org/2023.sustainlp-1.23/) submitted to [the SustaiNLP workshop](https://aclanthology.org/volumes/2023.sustainlp-1/) at ACL 2023.
 ```
 @inproceedings{wang-hong-2023-query,
     title = "Query Encoder Distillation via Embedding Alignment is a Strong Baseline Method to Boost Dense Retriever Online Efficiency",
