@@ -105,7 +105,8 @@ def create_faiss_index(args: argparse.Namespace) -> None:
         index.save(dir_idx, prefix=args.document_encoder, ext=args.extension)
 
         logging.info(f"Index at {dir_idx / index_file_name} created successfully.")
-        return None
+
+    return None
 
 
 def evaluate_query_encoder(args: argparse.Namespace) -> None:
